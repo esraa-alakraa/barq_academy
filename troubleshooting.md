@@ -57,4 +57,15 @@ Keep chronological entries. Copy this block for each meaningful investigation.
 - Retest evidence: Executed `curl -i http://localhost:8080/ready` and got `HTTP 200 OK` with status `ready`.
 - Related commit: `fix(config): correct database credentials and internal ports in app.env`
 - Remaining uncertainty: .
+## Entry / 2026-09-25 / 06:35
+- Symptom: Dockerfile was copying sensitive `.env` file into the image layers and lacked complete workdir permissions.
+- Hypothesis: Storing credentials inside the image risks secrets leakage, and missing ownership on `/srv` can cause runtime permission issues.
+- Command or test: Inspected `Dockerfile` configuration and build steps.
+- Actual output: Found `COPY config/app.env /srv/app.env` and missing `chown` for the `/srv` workspace directory.
+- Failed attempt and what changed your thinking: Running containers with hardcoded env files bypassed runtime environment injection through Compose.
+- Root cause: Hardcoding sensitive configuration files in Dockerfile and missing directory-level ownership setup for the non-root `app` user.
+- Fix: Removed `COPY config/app.env` from Dockerfile, added `RUN chown -R app:app /srv`, and ensured non-root execution with `USER app`.
+- Retest evidence: Rebuilt image with `docker compose build` and verified the application runs as non-root without embedding secret files in layers.
+- Related commit: `fix(dockerfile): run as non-root user and remove app.env hardcoding`
+- Remaining uncertainty: .
 Do not fabricate a failed attempt just to fill the template. Record actual attempts.
