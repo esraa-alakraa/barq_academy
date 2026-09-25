@@ -35,4 +35,15 @@ Keep chronological entries. Copy this block for each meaningful investigation.
 - Retest evidence: `curl -i http://localhost:8080` returned `HTTP/1.1 200 OK`.
 - Related commit: `fix(docker): change APP_HOST binding from 127.0.0.1 to 0.0.0.0`
 - Remaining uncertainty: .
+## Entry / 2026-09-25 / 05:10
+- Symptom: Nginx service was connected to both `frontend` and `backend` networks, violating strict network isolation policies.
+- Hypothesis: Nginx does not require direct access to database services (`postgres` and `redis`) on the internal `backend` network.
+- Command or test: Inspected `networks` configuration for `nginx` service in `docker-compose.yml`.
+- Actual output: `nginx` had `networks: [frontend, backend]`.
+- Failed attempt and what changed your thinking: .
+- Root cause: Over-privileged network configuration exposing backend database segment to the reverse proxy container.
+- Fix: Updated `nginx` service configuration in `docker-compose.yml` to restrict network participation strictly to `networks: [frontend]`.
+- Retest evidence: Ran `docker inspect nginx` and verified it is attached solely to the `frontend` bridge network, while application endpoints remained fully operational.
+- Related commit: `fix(security): restrict nginx network access solely to frontend network`
+- Remaining uncertainty: .
 Do not fabricate a failed attempt just to fill the template. Record actual attempts.
