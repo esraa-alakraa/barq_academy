@@ -68,4 +68,15 @@ Keep chronological entries. Copy this block for each meaningful investigation.
 - Retest evidence: Rebuilt image with `docker compose build` and verified the application runs as non-root without embedding secret files in layers.
 - Related commit: `fix(dockerfile): run as non-root user and remove app.env hardcoding`
 - Remaining uncertainty: .
+## Entry / 2026-09-25 / 06:45
+- Symptom: PostgreSQL and Redis ports were open on the host machine.
+- Hypothesis: Publishing database ports violates project security rules.
+- Command or test: Checked open ports using `docker compose ps`.
+- Actual output: Ports 15432 and 16379 were active.
+- Failed attempt and what changed your thinking: Restricting ports to localhost is still considered publishing.
+- Root cause: Having `ports` sections under database services.
+- Fix: Removed `ports` from `postgres` and `redis` in `docker-compose.yml`.
+- Retest evidence: Ports are closed on host, and endpoints work fine via Nginx.
+- Related commit: `security(compose): unpublish database ports to comply with requirements`
+- Remaining uncertainty: .
 Do not fabricate a failed attempt just to fill the template. Record actual attempts.
