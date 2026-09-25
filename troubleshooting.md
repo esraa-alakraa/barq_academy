@@ -24,5 +24,15 @@ Keep chronological entries. Copy this block for each meaningful investigation.
 - Retest evidence: `docker compose ps` confirmed port mapping updated to `127.0.0.1:8080->80/tcp`.
 - Related commit: `fix(nginx): update container target port from 81 to 80 in docker-compose`
 - Remaining uncertainty: .
-
+## Entry / 2026-09-25 / 04:45
+- Symptom: Requests to `http://localhost:8080` still failed with `502 Bad Gateway`.
+- Hypothesis: Flask app is bound to loopback `127.0.0.1` inside container, rejecting proxy connections from Nginx network interface.
+- Command or test: Checked `APP_HOST` in `docker-compose.yml` and tested container logs.
+- Actual output: Nginx failed to connect to `app-01:8080` (connection refused).
+- Failed attempt and what changed your thinking: .
+- Root cause: `APP_HOST` was configured as `127.0.0.1` instead of `0.0.0.0`, restricting incoming traffic to internal container loopback only.
+- Fix: Updated `APP_HOST` to `0.0.0.0` in `docker-compose.yml`.
+- Retest evidence: `curl -i http://localhost:8080` returned `HTTP/1.1 200 OK`.
+- Related commit: `fix(docker): change APP_HOST binding from 127.0.0.1 to 0.0.0.0`
+- Remaining uncertainty: .
 Do not fabricate a failed attempt just to fill the template. Record actual attempts.
