@@ -46,4 +46,15 @@ Keep chronological entries. Copy this block for each meaningful investigation.
 - Retest evidence: Ran `docker inspect nginx` and verified it is attached solely to the `frontend` bridge network, while application endpoints remained fully operational.
 - Related commit: `fix(security): restrict nginx network access solely to frontend network`
 - Remaining uncertainty: .
+## Entry / 2026-09-25 / 06:30
+- Symptom: Readiness check (`/ready`) returned 503 with database dependencies marked as `unavailable`.
+- Hypothesis: `config/app.env` contains wrong database credentials and host ports instead of container ports.
+- Command or test: Checked `config/app.env` and reviewed app logs using `docker compose logs app-01`.
+- Actual output: `DATABASE_URL` used port 5433 with wrong password `BarqLabOnly_7qN2vK8d`, and `REDIS_URL` used port 6380.
+- Failed attempt and what changed your thinking: Restarting networks did not resolve the issue, showing it was a configuration and credential error.
+- Root cause: Wrong password and using host ports (5433, 6380) in `app.env` instead of internal container ports (5432, 6379).
+- Fix: Updated `config/app.env` with correct password and internal ports (`postgres:5432` and `redis:6379`), then ran `docker compose up -d --force-recreate`.
+- Retest evidence: Executed `curl -i http://localhost:8080/ready` and got `HTTP 200 OK` with status `ready`.
+- Related commit: `fix(config): correct database credentials and internal ports in app.env`
+- Remaining uncertainty: .
 Do not fabricate a failed attempt just to fill the template. Record actual attempts.
